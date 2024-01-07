@@ -12,13 +12,13 @@ nextButton.addEventListener('click', () => {
   setNextQuestion()
 })
 
-function startGame() {
-  startButton.classList.add('hide')
-  shuffledQuestions = questions.sort(() => Math.random() - .5)
-  currentQuestionIndex = 0
-  questionContainerElement.classList.remove('hide')
-  setNextQuestion()
-}
+// function startGame() {
+//   startButton.classList.add('hide')
+//   shuffledQuestions = questions.sort(() => Math.random() - .5)
+//   currentQuestionIndex = 0
+//   questionContainerElement.classList.remove('hide')
+//   setNextQuestion()
+// }
 
 function setNextQuestion() {
   resetState()
@@ -76,7 +76,62 @@ function clearStatusClass(element) {
   element.classList.remove('wrong')
 }
 
-const questions = [
+const csvLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSNeDJhczsZ15-g4J3WlTqeOTaGS8iwHvUjsD_c90uUtwSrE7vVY5msruJnGQ447jTKYWvsAlAOVxUV/pub?gid=0&single=true&output=csv";
+
+let questions; // Declare questions variable outside of functions to make it accessible
+
+async function fetchData() {
+  try {
+    const response = await fetch(csvLink);
+    const data = await response.text();
+
+    const results = Papa.parse(data, {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      transform: (value, header) => {
+        if (header === 'answers') {
+          try {
+            value = value.replace(/'/g, '"');
+            value = value.replace(/(\w+:)|(\w+ :)/g, function(matchedStr) {
+              return '"' + matchedStr.substring(0, matchedStr.length - 1) + '":';
+            });
+            return JSON.parse(value);
+          } catch (error) {
+            console.error('Invalid JSON in answers field:', value);
+            return null;
+          }
+        } else {
+          return value;
+        }
+      }
+    }).data;
+
+    console.log(results);
+
+    questions = results; // Assign the fetched data to questions variable
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+fetchData().then(() => {
+  console.log('Data fetched successfully');
+  startGame(); // Call startGame function after fetching data
+});
+
+function startGame() {
+  // Rest of your startGame function remains unchanged
+  startButton.classList.add('hide')
+  shuffledQuestions = questions.sort(() => Math.random() - 0.5)
+  currentQuestionIndex = 0
+  questionContainerElement.classList.remove('hide')
+  setNextQuestion()
+}
+
+// Rest of your code remains unchanged
+
+const questions111 = [
   {
     question: 'What is 2 + 2?',
     answers: [
@@ -110,3 +165,5 @@ const questions = [
     ]
   }
 ]
+
+console.log(questions)
